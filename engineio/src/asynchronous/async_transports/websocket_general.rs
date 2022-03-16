@@ -1,10 +1,11 @@
 use std::{borrow::Cow, str::from_utf8, sync::Arc};
 
 use crate::{error::Result, Error, Packet, PacketId};
+use async_stream::try_stream;
 use bytes::{BufMut, Bytes, BytesMut};
 use futures_util::{
     stream::{SplitSink, SplitStream},
-    FutureExt, SinkExt, Stream, StreamExt,
+    SinkExt, Stream, StreamExt,
 };
 use tokio::{net::TcpStream, sync::Mutex};
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
@@ -73,22 +74,29 @@ impl AsyncWebsocketGeneralTransport {
         Ok(())
     }
 
+    fn receive_message(&self) -> impl Stream<Item = Result<Message>> + '_ {
+        try_stream! {
+            for await item in &mut *self.receiver.lock().await {
+                yield item?;
+            }
+        }
+    }
+
     pub(crate) fn stream(&self) -> impl Stream<Item = Result<Bytes>> + '_ {
-        self.receiver
-            .lock()
-            .into_stream()
-            .then(|mut rec| async move {
-                let msg = rec.next().await.ok_or(Error::IncompletePacket())??;
+        try_stream! {
+            for await msg in self.receive_message() {
+                let msg = msg?;
                 if msg.is_binary() {
                     let data = msg.into_data();
                     let mut msg = BytesMut::with_capacity(data.len() + 1);
                     msg.put_u8(PacketId::Message as u8);
                     msg.put(data.as_ref());
 
-                    Ok(msg.freeze())
+                    yield msg.freeze();
                 } else {
-                    Ok(Bytes::from(msg.into_data()))
+                    yield Bytes::from(msg.into_data());
                 }
-            })
+            }
+        }
     }
 }
