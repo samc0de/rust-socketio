@@ -7,7 +7,7 @@ use crate::error::Result;
 use std::collections::HashMap;
 use std::ops::DerefMut;
 use std::sync::{Arc, RwLock};
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 use std::time::Instant;
 
 use crate::socket::Socket as InnerSocket;
@@ -64,6 +64,8 @@ impl Client {
 
         // construct the opening packet
         let open_packet = Packet::new(PacketId::Connect, self.nsp.clone(), None, None, 0, None);
+        // println!("{:#?}", open_packet);
+        // dbg!(&open_packet);
 
         self.socket.send(open_packet)?;
 
@@ -230,6 +232,7 @@ impl Client {
         Iter { socket: self }
     }
 
+    // fn callback<P: Into<String>>(&self, event: &Event, payload: P) -> Result<()> {
     fn callback<P: Into<Payload>>(&self, event: &Event, payload: P) -> Result<()> {
         let mut on = self.on.write()?;
         let lock = on.deref_mut();
@@ -250,6 +253,9 @@ impl Client {
                     to_be_removed.push(index);
 
                     if ack.time_started.elapsed() < ack.timeout {
+                    let start = SystemTime::now();
+
+                    dbg!(start);
                         if let Some(ref payload) = socket_packet.data {
                             ack.callback.deref_mut()(
                                 Payload::String(payload.to_owned()),

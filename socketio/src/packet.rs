@@ -130,6 +130,7 @@ impl TryFrom<Bytes> for Packet {
     }
 }
 
+// let zero_packet: Packet = Packet::new(packet_type:PacketId::Connect, nsp:"", data:Some(""), id:Some(0), attachment_count:0, attachments:None);
 impl TryFrom<&Bytes> for Packet {
     type Error = Error;
     /// Decodes a packet given a `Bytes` type.
@@ -141,12 +142,32 @@ impl TryFrom<&Bytes> for Packet {
     /// send in another packet.
     fn try_from(payload: &Bytes) -> Result<Packet> {
         let mut i = 0;
+        // let pid: u8 = 0;
+        // println!("The payload in socketio/packet.rs: {:#?}", payload);
+        // dbg!(&payload);
+        //  if payload.first() == PacketId::Connect {
+        //      return Ok(Packet::new(
+        //      PacketId::Connect,
+        //      None, None, None, None, None));
+        //  }
         let packet_id = PacketId::try_from(*payload.first().ok_or(Error::IncompletePacket())?)?;
+        //  let packet_id = PacketId::try_from(*payload.first().ok_or(PacketId::Connect)?)?;
+        // println!("Got past the first occurrence.");
+        // let packet_id = PacketId::try_from(*payload.first().ok_or(0)?)?;
+        // let packet_id = PacketId::try_from(*payload.first().ok())?;
+        // let packet_id = PacketId::try_from(*payload.first().ok() || 0)?;
 
         let attachment_count = if let PacketId::BinaryAck | PacketId::BinaryEvent = packet_id {
             let start = i + 1;
 
+            // println!("In packet.");
+            // dbg!(&payload);
+            // dbg!(&i);
             while payload.get(i).ok_or(Error::IncompletePacket())? != &b'-' && i < payload.len() {
+            // while payload.get(i).ok_or(zero_packet)? != &b'-' && i < payload.len() {
+            // while payload.get(i).unwrap() != &b'-' && i < payload.len() {
+            // println!("Got past the second occurrence.");
+            // while payload.get(i).ok_or(()) != Ok(&b'-') && i < payload.len() {
                 i += 1;
             }
             payload
@@ -160,11 +181,16 @@ impl TryFrom<&Bytes> for Packet {
             0
         };
 
+        // println!("\nNo attachments.\n");
+        // let nsp: &str = if payload.get(i + 1).ok_or(Error::IncompletePacket())? == &b'/' {
         let nsp: &str = if payload.get(i + 1).ok_or(Error::IncompletePacket())? == &b'/' {
+        // let nsp: &str = if payload.get(i + 1).unwrap() == &b'/' {
+            println!("Got past the third occurrence.");
             let mut start = i + 1;
             while payload.get(i).ok_or(Error::IncompletePacket())? != &b',' && i < payload.len() {
                 i += 1;
             }
+            println!("Got past the forth occurrence.");
             let len = i - start;
             payload
                 .read_with(&mut start, Str::Len(len))
@@ -177,6 +203,8 @@ impl TryFrom<&Bytes> for Packet {
         let id = if (*next as char).is_digit(10) && i < payload.len() {
             let start = i + 1;
             i += 1;
+            // println!("\nNext:\n");
+            // dbg!(&next);
             while (*payload.get(i).ok_or(Error::IncompletePacket())? as char).is_digit(10)
                 && i < payload.len()
             {

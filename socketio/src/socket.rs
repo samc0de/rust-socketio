@@ -58,6 +58,7 @@ impl Socket {
 
         // the packet, encoded as an engine.io message packet
         let engine_packet = EnginePacket::new(EnginePacketId::Message, Bytes::from(&packet));
+        // println!("Emitting packet: {:#?}", engine_packet);
         self.engine_client.emit(engine_packet)?;
 
         if let Some(attachments) = packet.attachments {
@@ -186,6 +187,7 @@ impl Socket {
                     },
                     Ok(None) => {
                         // Engineio closed before attachments completed.
+                        // println!("In socket.");
                         return Err(Error::IncompletePacket());
                     }
                 }

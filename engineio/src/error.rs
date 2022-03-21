@@ -16,7 +16,7 @@ pub enum Error {
     // Negative verb-object
     #[error("Invalid packet id: {0}")]
     InvalidPacketId(u8),
-    #[error("Error while parsing an incomplete packet")]
+    #[error("ENGINEIO: Error while parsing an incomplete packet")]
     IncompletePacket(),
     #[error("Got an invalid packet which did not follow the protocol format")]
     InvalidPacket(),

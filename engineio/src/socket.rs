@@ -88,6 +88,8 @@ impl Socket {
 
     /// Sends a packet to the server.
     pub fn emit(&self, packet: Packet) -> Result<()> {
+        // print!("Sending packet (in socket LIB).");
+        // dbg!(&packet);
         if !self.connected.load(Ordering::Acquire) {
             let error = Error::IllegalActionBeforeOpen();
             self.call_error_callback(format!("{}", error));
@@ -172,6 +174,7 @@ impl Socket {
 
     pub(crate) fn handle_data(&self, data: Bytes) {
         if let Some(on_data) = self.on_data.as_ref() {
+            // dbg!(&data);
             spawn_scoped!(on_data(data));
         }
     }

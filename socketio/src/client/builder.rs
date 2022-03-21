@@ -12,6 +12,9 @@ use std::thread;
 
 use crate::socket::Socket as InnerSocket;
 
+use std::time::{SystemTime};
+
+
 /// Flavor of Engine.IO transport.
 #[derive(Clone, Eq, PartialEq)]
 pub enum TransportType {
@@ -114,6 +117,7 @@ impl ClientBuilder {
     pub fn on<T: Into<Event>, F>(mut self, event: T, callback: F) -> Self
     where
         F: for<'a> FnMut(Payload, Client) + 'static + Sync + Send,
+        // F: for<'a> FnMut(String, Client) + 'static + Sync + Send,
     {
         self.on.insert(event.into(), Callback::new(callback));
         self
@@ -226,6 +230,8 @@ impl ClientBuilder {
             for packet in socket_clone.iter() {
                 if let e @ Err(Error::IncompleteResponseFromEngineIo(_)) = packet {
                     //TODO: 0.3.X handle errors
+                    let start = SystemTime::now();
+                    dbg!(start);
                     panic!("{}", e.unwrap_err())
                 }
             }
