@@ -35,7 +35,7 @@ impl WebsocketSecureTransport {
             .enable_all()
             .max_blocking_threads(21000)
             // .worker_threads(1000)
-            .thread_keep_alive(std::time::Duration::from_millis(100))
+            // .thread_keep_alive(std::time::Duration::from_millis(100))
             .build()?;
 
         let inner = runtime.block_on(AsyncWebsocketSecureTransport::new(
