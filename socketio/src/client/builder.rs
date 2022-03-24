@@ -2,6 +2,7 @@ use super::super::{event::Event, payload::Payload};
 use super::callback::Callback;
 use crate::Client;
 use native_tls::TlsConnector;
+use rand::rngs::adapter::ReseedingRng;
 use rust_engineio::client::ClientBuilder as EngineIoClientBuilder;
 use rust_engineio::header::{HeaderMap, HeaderValue};
 use url::Url;
@@ -228,11 +229,26 @@ impl ClientBuilder {
             // `Result::Ok`, the server receives a close frame so it's safe to
             // terminate
             for packet in socket_clone.iter() {
-                if let e @ Err(Error::IncompleteResponseFromEngineIo(_)) = packet {
+                if let _e @ Err(Error::IncompleteResponseFromEngineIo(_)) = packet {
                     //TODO: 0.3.X handle errors
-                    let start = SystemTime::now();
-                    dbg!(start);
-                    panic!("{}", e.unwrap_err())
+                    // let clone = self.Clone();
+                    // let start = SystemTime::now();
+                    // dbg!(start);
+                    // println!("Strange error occurred");
+                    // match self.emit(Packet::new(PacketId::Pong, Bytes::new())) {
+                    //     Ok(s) => s,
+                    //     Err(_e) => {
+                    //         // Log
+                    //         ()
+                    //     }
+                    // }
+                    // Result. socket_clone
+                    // &self.connect();
+                    // Should reconnect!! Or at least mark somehow so that monitoring can start/connect.
+                    // panic!("{}", e.unwrap_err())
+                    // Ok(());
+                    // "2".is_ascii();
+                    ()
                 }
             }
         });

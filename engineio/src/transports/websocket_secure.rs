@@ -9,8 +9,8 @@ use crate::{
 use bytes::Bytes;
 use http::HeaderMap;
 use native_tls::TlsConnector;
-use std::sync::Arc;
-use tokio::runtime::Runtime;
+use std::{sync::Arc, borrow::BorrowMut};
+use tokio::runtime::{Runtime, self};
 use url::Url;
 
 #[derive(Clone)]
@@ -26,8 +26,16 @@ impl WebsocketSecureTransport {
         tls_config: Option<TlsConnector>,
         headers: Option<HeaderMap>,
     ) -> Result<Self> {
-        let runtime = tokio::runtime::Builder::new_current_thread()
+        // let runtime = tokio::runtime::Builder::new_current_thread()
+        // let runtime = runtime::Runtime::new()?;
+            // .enable_all()
+            // .worker_threads(100)
+            // .build()?;
+        let runtime = tokio::runtime::Builder::new_multi_thread()
             .enable_all()
+            .max_blocking_threads(21000)
+            // .worker_threads(1000)
+            .thread_keep_alive(std::time::Duration::from_millis(100))
             .build()?;
 
         let inner = runtime.block_on(AsyncWebsocketSecureTransport::new(

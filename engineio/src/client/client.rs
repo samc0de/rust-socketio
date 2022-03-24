@@ -335,6 +335,8 @@ impl Client {
             }
             Ok(Some(packet))
         } else {
+            println!("Error in reading a packet: Sending a pong!!!");
+            self.emit(Packet::new(PacketId::Pong, Bytes::new()))?;
             Ok(None)
         }
     }
